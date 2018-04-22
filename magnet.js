@@ -1,3 +1,5 @@
+import { ok } from "assert";
+
 // magnetのアクセス処理
 function response_magnet(request, response) {
     //POSTアクセス時の処理
@@ -13,10 +15,19 @@ function response_magnet(request, response) {
         request.on('end', function() {
             //生ログデータ出力
             logger.debug(body);
-            //var post_data = qs.parse(body) + ''; //データのパース
+            
+            //配列格納
             var list = body.split(',');
+
+            //対象ビーコンかチェック
+            var beaconmac = list[1];
+            con.query('SELECT * FROM master WHERE beaconmac = 'beaconmac';', function (err, rows, fields) {
+                if (err) { console.log('err: ' + err); }
+                console.log('beaconmac ok');
+              });
+
+                //var post_data = qs.parse(body) + ''; //データのパース
                 var code = list[0];
-                var beaconmac = list[1];
                 var gatewaymac = list[2];
                 var rssi = list[3];
                 var payload = hexBufferReverse(list[4]);
@@ -32,11 +43,6 @@ function response_magnet(request, response) {
                     if (err) throw err;
                     console.log('mysql insert');
                   });
-
-                //con.end((err) => {
-                //    if (err) throw err;
-                //    console.log('disconnected to mysql');
-                //  });
         
                 response.statusCode = 200;
                 response.setHeader('Content-type', 'text/plain');
