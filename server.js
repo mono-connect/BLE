@@ -3,6 +3,7 @@ const fs = require('fs');
 const url = require('url');
 const moment = require('moment');
 const mysql = require('mysql');
+const log4js = require('log4js')
 
 var con = mysql.createConnection({
     host : 'localhost',
@@ -31,6 +32,13 @@ function getFromClient(request, response){
             break;
     }
 }
+
+//ログ設定
+log4js.configure({
+    appenders: { 'file': { type: 'file', filename: 'logs/access.log' } },
+    categories: { default: { appenders: ['file'], level: 'debug' } }
+  });
+  var logger = log4js.getLogger('default');
 
 //magnet処理インクルード
 eval(fs.readFileSync('magnet.js')+'');

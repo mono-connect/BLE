@@ -11,6 +11,8 @@ function response_magnet(request, response) {
     
         //データ受信終了のイベント処理
         request.on('end', function() {
+            //生ログデータ出力
+            logger.debug(body);
             //var post_data = qs.parse(body) + ''; //データのパース
             var list = body.split(',');
                 var code = list[0];
