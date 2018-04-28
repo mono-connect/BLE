@@ -1,5 +1,3 @@
-import { ok } from "assert";
-
 // magnetのアクセス処理
 function response_magnet(request, response) {
     //POSTアクセス時の処理
@@ -21,13 +19,22 @@ function response_magnet(request, response) {
 
             //対象ビーコンかチェック
             var beaconmac = list[1];
-            con.query('SELECT * FROM master WHERE beaconmac = 'beaconmac';', function (err, rows, fields) {
-                if (err) { console.log('err: ' + err); }
-                console.log('beaconmac ok');
-              });
-
-                //var post_data = qs.parse(body) + ''; //データのパース
-                var code = list[0];
+            var selectQuery = 'SELECT * FROM ?? where beaconmac IN (?)';
+            con.query(selectQuery, [ 'master', beaconmac ], function(err, row, fields) {
+            if(err) {
+                console.log('Error1');
+                return;
+              }
+              else if (!row.length) {                                                   
+                console.log(beaconmac + ' check NG');
+                return;
+              }
+              else if (row[0].something == 'NULL' || row[0].something == '') {
+                console.log('Error3');
+                return;
+              }
+              console.log(beaconmac + ' check OK');
+              var code = list[0];
                 var gatewaymac = list[2];
                 var rssi = list[3];
                 var payload = hexBufferReverse(list[4]);
@@ -42,12 +49,14 @@ function response_magnet(request, response) {
                 (err, res)  => {
                     if (err) throw err;
                     console.log('mysql insert');
-                  });
-        
-                response.statusCode = 200;
-                response.setHeader('Content-type', 'text/plain');
-                response.end();        
+                });
             });
+
+            //200ステータス返却
+            response.statusCode = 200;
+            response.setHeader('Content-type', 'text/plain');
+            response.end();        
+        });
     
         } else {
         response.statusCode = 404;
