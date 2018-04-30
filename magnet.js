@@ -39,7 +39,7 @@ function response_magnet(request, response) {
                 var rssi = list[3];
                 var payload = hexBufferReverse(list[4]);
                 var battery = parseInt(payload.slice(22,26), 16)/100;
-                var status = parseInt(list[4].slice(22,24));
+                var status = parseInt(payload.slice(20,22));
                 var date = moment(list[5],'X').format();
                 console.log(battery);
                 console.log(status);
