@@ -12,6 +12,7 @@ var con = mysql.createConnection({
     port: 3306,
     database:"sensor"
 });
+
 con.connect((err) => {
     if (err) throw err;
   

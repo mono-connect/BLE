@@ -49,6 +49,7 @@ function response_magnet(request, response) {
                 (err, res)  => {
                     if (err) throw err;
                     console.log('mysql insert');
+                //con.end();
                 });
             });
 
