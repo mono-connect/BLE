@@ -30,6 +30,10 @@ function getFromClient(request, response){
         case '/magnet':
             response_magnet(request, response);
             break;
+
+        case '/temperature':
+            response_temperature(request, response);
+            break;
     }
 }
 
@@ -42,6 +46,7 @@ log4js.configure({
 
 //magnet処理インクルード
 eval(fs.readFileSync('magnet.js')+'');
+eval(fs.readFileSync('temperature.js')+'');
     
     //エンディアン変換関数
     function hexBufferReverse (text) {
