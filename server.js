@@ -43,7 +43,7 @@ log4js.configure({
 });
 var logger = log4js.getLogger('default');
 
-//magnet処理インクルード
+//各センサー処理読み込み
 eval(fs.readFileSync('magnet.js')+'');
 eval(fs.readFileSync('temperature.js')+'');
     
