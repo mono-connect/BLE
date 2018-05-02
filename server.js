@@ -47,6 +47,7 @@ con.connect((err) => {
 function response_sensor(request, response) {
     if (request.method == 'POST'){
         var body='';
+
         request.on('data', function (data) {
             body +=data;
         });
@@ -78,13 +79,15 @@ function response_sensor(request, response) {
                   console.log(beaconmac + ' check OK');
                   console.log("sensor type = "+rows[0].type);
 
+                  //センサー共通処理
+                  var code = list[0];
+                  var gatewaymac = list[2];
+                  var rssi = list[3];
+                  var payload = hexBufferReverse(list[4]);
+                  var battery = parseInt(payload.slice(22,26), 16)/100;
+                    
                   //マグネットセンサー処理
                   if(rows[0].type == "magnet") {
-                    var code = list[0];
-                    var gatewaymac = list[2];
-                    var rssi = list[3];
-                    var payload = hexBufferReverse(list[4]);
-                    var battery = parseInt(payload.slice(22,26), 16)/100;
                     var status = parseInt(payload.slice(20,22));
                     var date = moment(list[5],'X').format();
                     console.log(battery);
@@ -99,11 +102,6 @@ function response_sensor(request, response) {
                     }
                     //温度・湿度センサー処理
                     else if(rows[0].type == "temperature") {
-                        var code = list[0];
-                        var gatewaymac = list[2];
-                        var rssi = list[3];
-                        var payload = hexBufferReverse(list[4]);
-                        var battery = parseInt(payload.slice(22,26), 16)/100;
                         var temp = parseInt(payload.slice(16,20), 16)/100;
                         var humid = parseInt(payload.slice(12,16), 16)/100;
                         var date = moment(list[5],'X').format();
@@ -118,6 +116,8 @@ function response_sensor(request, response) {
                             console.log('mysql insert');
                         });
                     }
+                    //加速度センサー処理
+                    //else if () {}
                 });
 
                 //200ステータス返却
