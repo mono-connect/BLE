@@ -85,11 +85,11 @@ function response_sensor(request, response) {
                   var rssi = list[3];
                   var payload = hexBufferReverse(list[4]);
                   var battery = parseInt(payload.slice(22,26), 16)/100;
+                  var date = moment(list[5],'X').format();
                     
                   //マグネットセンサー処理
                   if(rows[0].type == "magnet") {
                     var status = parseInt(payload.slice(20,22));
-                    var date = moment(list[5],'X').format();
                     console.log(battery);
                     console.log(status);
                     console.log(date);
@@ -104,7 +104,6 @@ function response_sensor(request, response) {
                     else if(rows[0].type == "temperature") {
                         var temp = parseInt(payload.slice(16,20), 16)/100;
                         var humid = parseInt(payload.slice(12,16), 16)/100;
-                        var date = moment(list[5],'X').format();
                         console.log(battery);
                         console.log(humid);
                         console.log(temp);
