@@ -28,20 +28,43 @@ log4js.configure({
 });
 var logger = log4js.getLogger('default');
 
-//mysql接続
-var con = mysql.createConnection({
-    host : 'localhost',
-    user : 'root',
+//mysql接続用コンフィグ
+var db_config = {
+    host: 'localhost',
+    user: 'root',
     password: 'Today123',
-    port: 3306,
-    database:"sensor"
-});
+    port:3306,
+    database: 'sensor'
+};
 
-con.connect((err) => {
-    if (err) throw err;
-  
-    console.log('connected to mysql');
-});
+//mysql接続
+var connection;
+
+function handleDisconnect() {
+    console.log('INFO.CONNECTION_DB: ');
+    connection = mysql.createConnection(db_config);
+    
+    //connection取得
+    connection.connect(function(err) {
+        if (err) {
+            console.log('ERROR.CONNECTION_DB: ', err);
+            setTimeout(handleDisconnect, 1000);
+        }
+    });
+    
+    //error('PROTOCOL_CONNECTION_LOST')時に再接続
+    connection.on('error', function(err) {
+        console.log('ERROR.DB: ', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            console.log('ERROR.CONNECTION_LOST: ', err);
+            handleDisconnect();
+        } else {
+            throw err;
+        }
+    });
+}
+
+handleDisconnect();
 
 //POSTデータ受信
 function response_sensor(request, response) {
@@ -62,7 +85,7 @@ function response_sensor(request, response) {
             //ビーコンMACが登録されているかチェック
             var beaconmac = list[1];
             var selectQuery = 'SELECT * FROM ?? where beaconmac IN (?)';
-            con.query(selectQuery, [ 'master', beaconmac ], function(err, rows, fields) {
+            connection.query(selectQuery, [ 'master', beaconmac ], function(err, rows, fields) {
                 if(err) {
                     console.log('Error1');
                     return;
@@ -93,7 +116,8 @@ function response_sensor(request, response) {
                     console.log(battery);
                     console.log(status);
                     console.log(date);
-                    con.query('INSERT INTO magnet set ?', 
+
+                    connection.query('INSERT INTO magnet set ?', 
                     {beaconmac:beaconmac,gatewaymac:gatewaymac,rssi:rssi,battery:battery,status:status,date:date}, 
                         (err, res)  => {
                             if (err) throw err;
@@ -108,7 +132,7 @@ function response_sensor(request, response) {
                         console.log(humid);
                         console.log(temp);
                         console.log(date);
-                        con.query('INSERT INTO temperature set ?', 
+                        connection.query('INSERT INTO temperature set ?', 
                         {beaconmac:beaconmac,gatewaymac:gatewaymac,rssi:rssi,battery:battery,temp:temp,humid:humid,date:date}, 
                         (err, res)  => {
                             if (err) throw err;
@@ -122,8 +146,9 @@ function response_sensor(request, response) {
                 //200ステータス返却
                 response.statusCode = 200;
                 response.setHeader('Content-type', 'text/plain');
-                response.end();        
+                response.end();
             });
+
         } else {
             response.statusCode = 404;
             response.setHeader('Content-type', 'text/plain');
