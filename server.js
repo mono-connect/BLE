@@ -114,7 +114,9 @@ function response_sensor(request, response) {
                   var payload = hexBufferReverse(list[4]);
                   var battery = parseInt(payload.slice(22,26), 16)/100;
                   var date = moment(list[5],'X').format();
-                    
+
+                  var inseartQuery = 'INSERT INTO magnet set ?';
+
                   //マグネットセンサー処理
                   if(rows[0].type == "magnet") {
                     var status = parseInt(payload.slice(20,22));
@@ -122,12 +124,22 @@ function response_sensor(request, response) {
                     console.log(formatted + ' status:' + status);
                     console.log(formatted + ' timestamp:' + date);
 
-                    connection.query('INSERT INTO magnet set ?', 
-                    {beaconmac:beaconmac,gatewaymac:gatewaymac,rssi:rssi,battery:battery,status:status,date:date}, 
+                    if(status == 4) {
+                        connection.query('INSERT INTO magnet set ?', 
+                        {beaconmac:beaconmac,gatewaymac:gatewaymac,rssi:rssi,battery:battery,status:status,status2:'ON',date:date}, 
                         (err, res)  => {
                             if (err) throw err;
                             console.log(formatted + ' mysql insert OK');
                         });
+                    }
+                    if(status == 0) {
+                        connection.query('INSERT INTO magnet set ?', 
+                        {beaconmac:beaconmac,gatewaymac:gatewaymac,rssi:rssi,battery:battery,status:status,status2:'OFF',date:date}, 
+                        (err, res)  => {
+                            if (err) throw err;
+                            console.log(formatted + ' mysql insert OK');
+                        });
+                    }
                     }
                     //温度・湿度センサー処理
                     else if(rows[0].type == "temperature") {
@@ -147,8 +159,6 @@ function response_sensor(request, response) {
                     //加速度センサー処理
                     //else if () {}
                 });
-
-                logger.debug('MYSQL INSERT OK');
 
                 //200ステータス返却
                 response.statusCode = 200;
