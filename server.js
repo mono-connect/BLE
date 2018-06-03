@@ -12,11 +12,11 @@ console.log('Loading function');
 exports.handler = function(event, context, callback) {
     //mysql接続用コンフィグ
     var db_config = {
-        host: 'visualizationdb001.cya5resp0zlq.ap-northeast-1.rds.amazonaws.com',
-        user: 'rsuser',
-        password: 'Today123',
+        host: '',
+        user: '',
+        password: '',
         port:3306,
-        database: 'visualizationdb'
+        database: ''
     };
     //mysql接続
     var connection;
