@@ -12,11 +12,11 @@ console.log('Loading function');
 exports.handler = function(event, context, callback) {
     //mysql接続用コンフィグ
     var db_config = {
-        host: '',
-        user: '',
-        password: '',
+        host: 'localhost',
+        user: 'root',
+        password: 'Today123',
         port:3306,
-        database: ''
+        database: 'blesensor'
     };
     //mysql接続
     var connection;
@@ -57,16 +57,16 @@ exports.handler = function(event, context, callback) {
         var list = payload.split(',');
         
         //ビーコンMACが登録されているかチェック
-        var beaconmac = list[1];
-        var selectQuery = 'SELECT * FROM ?? where beaconmac IN (?)';
-        connection.query(selectQuery, [ 'master', beaconmac ], function(err, rows, fields) {
+        var sensor_macaddrs = list[1];
+        var selectQuery = 'SELECT * FROM ?? where sensor_macaddrs IN (?)';
+        connection.query(selectQuery, [ 'master', sensor_macaddrs ], function(err, rows, fields) {
             if(err) {
                 console.log(formatted + 'Error1');
                 return;
             }
             
             else if (!rows.length) {                                            
-                console.log(formatted + beaconmac + ' check NG');
+                console.log(formatted + sensor_macaddrs + ' check NG');
                 return;
             }
             
@@ -74,11 +74,16 @@ exports.handler = function(event, context, callback) {
                 console.log(formatted + 'Error3');
                 return;
             }
-            console.log(formatted + ' beaconmac:' + beaconmac + ' check OK');
-            console.log(formatted + ' sensor type = ' + rows[0].type);
+            console.log(formatted + ' sensor_macaddrs:' + sensor_macaddrs + ' check OK');
+            console.log(formatted + ' sensor type = ' + rows[0].sensor_type);
             
             //センサー共通処理
-            var code = list[0];
+            var box_name = rows[0].box_name;
+            var box_beacon_id = rows[0].box_beacon_id;
+            var box_style = rows[0].box_style;
+            var sensor_type = rows[0].sensor_type;
+            var sensor_tenant_id = rows[0].sensor_tenant_id;
+            var tenant_name = rows[0].tenant_name;
             var gatewaymac = list[2];
             var rssi = list[3];
             var payload = hexBufferReverse(list[4]);
@@ -88,15 +93,16 @@ exports.handler = function(event, context, callback) {
             var inseartQuery = 'INSERT INTO magnet set ?';
             
             //マグネットセンサー処理
-            if(rows[0].type == "magnet") {
+            if(rows[0].sensor_type == "MAGNET") {
                 var status = parseInt(payload.slice(20,22));
                 console.log(formatted + ' battery:' + battery);
                 console.log(formatted + ' status:' + status);
                 console.log(formatted + ' timestamp:' + date);
                 
                 if(status == 4) {
-                    connection.query('INSERT INTO magnet set ?', 
-                    {beaconmac:beaconmac,gatewaymac:gatewaymac,rssi:rssi,battery:battery,status:status,status2:'ON',date:date}, 
+                    connection.query('INSERT INTO sensor set ?', 
+                    {box_status:'ON',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:'NULL',box_name:box_name,box_beacon_id:box_beacon_id,
+                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id}, 
                     (err, res)  => {
                         if (err) throw err;
                         console.log(formatted + ' mysql insert OK');
@@ -104,7 +110,8 @@ exports.handler = function(event, context, callback) {
                 }
                 if(status == 0) {
                     connection.query('INSERT INTO magnet set ?', 
-                    {beaconmac:beaconmac,gatewaymac:gatewaymac,rssi:rssi,battery:battery,status:status,status2:'OFF',date:date}, 
+                    {box_status:'OFF',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:'NULL',box_name:box_name,box_beacon_id:box_beacon_id,
+                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id}, 
                     (err, res)  => {
                         if (err) throw err;
                         console.log(formatted + ' mysql insert OK');
@@ -112,7 +119,7 @@ exports.handler = function(event, context, callback) {
                 }
             }
             //温度・湿度センサー処理
-            else if(rows[0].type == "temperature") {
+            else if(rows[0].type == "TEMPERATURE") {
                 var temp = parseInt(payload.slice(16,20), 16)/100;
                 var humid = parseInt(payload.slice(12,16), 16)/100;
                 console.log(formatted + ' battery:' + battery);
@@ -120,9 +127,10 @@ exports.handler = function(event, context, callback) {
                 console.log(formatted + ' temp:' + temp);
                 console.log(formatted + ' timestamp:' + date);
                 connection.query('INSERT INTO temperature set ?', 
-                {beaconmac:beaconmac,gatewaymac:gatewaymac,rssi:rssi,battery:battery,temp:temp,humid:humid,date:date}, 
+                {box_status:'NULL',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:'NULL',box_name:'NULL',box_beacon_id:'NULL',box_style:'NULL',
+                sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,temp:temp,humidity:humid}, 
                 (err, res)  => {
-                    if (err) throw err;
+                if (err) throw err;
                     console.log(formatted + 'mysql insert OK');
                 });
             }
