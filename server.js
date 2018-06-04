@@ -93,13 +93,13 @@ exports.handler = function(event, context, callback) {
             var inseartQuery = 'INSERT INTO magnet set ?';
             
             //マグネットセンサー処理
-            if(rows[0].sensor_type == "MAGNET") {
+            if(sensor_type == "MAGNET" || sensor_type == "INTERCEPTION" || sensor_type == "HUMAN" || sensor_type == "ACCELERATION") {
                 var status = parseInt(payload.slice(20,22));
                 console.log(formatted + ' battery:' + battery);
                 console.log(formatted + ' status:' + status);
                 console.log(formatted + ' timestamp:' + date);
                 
-                if(status == 4) {
+                if(status == 4 || status == 2) {
                     connection.query('INSERT INTO sensor set ?', 
                     {box_status:'ON',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:'NULL',box_name:box_name,box_beacon_id:box_beacon_id,
                     box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id}, 
