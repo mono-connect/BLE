@@ -49,7 +49,8 @@ exports.handler = function(event, context, callback) {
         
         // Kinesis data is base64 encoded so decode here
         // make object by json decode
-        const payloadAll = JSON.parse(new Buffer(record.kinesis.data, 'base64').toString('ascii'));
+        const buffer = new Buffer(record.kinesis.data, 'base64');
+        const payloadAll = buffer.toString('utf-8');
         console.log('payloadAll:', payloadAll);
         const payload = payloadAll[0];
         
