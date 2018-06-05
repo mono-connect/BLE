@@ -52,10 +52,9 @@ exports.handler = function(event, context, callback) {
         const buffer = new Buffer(record.kinesis.data, 'base64');
         const payloadAll = buffer.toString('utf-8');
         console.log('payloadAll:', payloadAll);
-        const payload = payloadAll[0];
         
         //配列格納
-        var list = payload.split(',');
+        var list = payloadAll.split(',');
         
         //ビーコンMACが登録されているかチェック
         var sensor_macaddrs = list[1];
