@@ -43,6 +43,7 @@ exports.handler = function(event, context, callback) {
         });
     }
     handleDisconnect();
+    
     //センサーデータ取得
     event.Records.forEach(function(record) {
         console.log('kinesis:', record.kinesis.data);
@@ -88,47 +89,69 @@ exports.handler = function(event, context, callback) {
             var rssi = list[3];
             var payload = hexBufferReverse(list[4]);
             var battery = parseInt(payload.slice(22,26), 16)/100;
-            var date = moment(list[5],'X').format();
+            var date = moment(list[5],'X').format("YYYY-MM-DD HH:mm:ss");
             
-            var inseartQuery = 'INSERT INTO magnet set ?';
+            var inseartQuery = 'INSERT INTO sensor set ?';
             
             //マグネットセンサー処理
-            if(sensor_type == "MAGNET" || sensor_type == "INTERCEPTION" || sensor_type == "HUMAN" || sensor_type == "ACCELERATION") {
+            if(sensor_type == "MAGNET") {
                 var status = parseInt(payload.slice(20,22));
-                console.log(formatted + ' battery:' + battery);
-                console.log(formatted + ' status:' + status);
-                console.log(formatted + ' timestamp:' + date);
                 
-                if(status == 4 || status == 2) {
-                    connection.query('INSERT INTO sensor set ?', 
-                    {box_status:'ON',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:'NULL',box_name:box_name,box_beacon_id:box_beacon_id,
-                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id}, 
+                if(status == 4) {
+                    connection.query(inseartQuery, 
+                    {box_status:'CLOSE',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name}, 
                     (err, res)  => {
                         if (err) throw err;
                         console.log(formatted + ' mysql insert OK');
                     });
                 }
                 if(status == 0) {
-                    connection.query('INSERT INTO magnet set ?', 
-                    {box_status:'OFF',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:'NULL',box_name:box_name,box_beacon_id:box_beacon_id,
-                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id}, 
+                    connection.query(inseartQuery, 
+                    {box_status:'OPEN',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name}, 
                     (err, res)  => {
                         if (err) throw err;
                         console.log(formatted + ' mysql insert OK');
                     });
                 }
             }
+
+            //遮断、人感、マット、加速度(衝撃)センサー処理
+            if(sensor_type == "INTERCEPTION" || sensor_type == "HUMAN" || sensor_type == "MATT" || sensor_type == "GRAVITY") {
+                var status = parseInt(payload.slice(20,22));
+                
+                if(status == 4 || status == 2) {
+                    connection.query(inseartQuery, 
+                    {box_status:'ACTIVE',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name}, 
+                    (err, res)  => {
+                        if (err) throw err;
+                        console.log(formatted + ' mysql insert OK');
+                    });
+                }
+                if(status == 0) {
+                    connection.query(inseartQuery, 
+                    {box_status:'INACTIVE',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name}, 
+                    (err, res)  => {
+                        if (err) throw err;
+                        console.log(formatted + ' mysql insert OK');
+                    });
+                }
+            }
+
             //温度・湿度センサー処理
-            else if(rows[0].type == "TEMPERATURE") {
+            if(sensor_type == "TEMP") {
                 var temp = parseInt(payload.slice(16,20), 16)/100;
                 var humid = parseInt(payload.slice(12,16), 16)/100;
                 console.log(formatted + ' battery:' + battery);
                 console.log(formatted + ' humidity:' + humid);
                 console.log(formatted + ' temp:' + temp);
                 console.log(formatted + ' timestamp:' + date);
-                connection.query('INSERT INTO temperature set ?', 
-                {box_status:'NULL',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:'NULL',box_name:'NULL',box_beacon_id:'NULL',box_style:'NULL',
-                sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,temp:temp,humidity:humid}, 
+                connection.query(inseartQuery, 
+                {box_status:'NULL',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:'NULL',box_beacon_id:"1",box_style:'NULL',
+                sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:'NULL',temp:temp,humidity:humid}, 
                 (err, res)  => {
                 if (err) throw err;
                     console.log(formatted + 'mysql insert OK');
