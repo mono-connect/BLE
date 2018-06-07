@@ -12,11 +12,11 @@ console.log('Loading function');
 exports.handler = function(event, context, callback) {
     //mysql接続用コンフィグ
     var db_config = {
-        host: 'localhost',
-        user: 'root',
-        password: 'Today123',
+        host: 'visualizationdb001.cya5resp0zlq.ap-northeast-1.rds.amazonaws.com',
+        user: 'rsuser',
+        password: '',
         port:3306,
-        database: 'blesensor'
+        database: ''
     };
     //mysql接続
     var connection;
@@ -92,7 +92,7 @@ exports.handler = function(event, context, callback) {
             var date = moment(list[5],'X').format("YYYY-MM-DD HH:mm:ss");
             var hour_minutes = moment(list[5],'X').format("HH:mm");
             
-            var inseartQuery = 'INSERT INTO sensor set ?';
+            var inseartQuery = 'INSERT INTO sample_table set ?';
             
             //マグネットセンサー処理
             if(sensor_type == "MAGNET") {
