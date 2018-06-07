@@ -90,6 +90,7 @@ exports.handler = function(event, context, callback) {
             var payload = hexBufferReverse(list[4]);
             var battery = parseInt(payload.slice(22,26), 16)/100;
             var date = moment(list[5],'X').format("YYYY-MM-DD HH:mm:ss");
+            var hour_minutes = moment(list[5],'X').format("HH:mm");
             
             var inseartQuery = 'INSERT INTO sensor set ?';
             
@@ -99,7 +100,7 @@ exports.handler = function(event, context, callback) {
                 
                 if(status == 4) {
                     connection.query(inseartQuery, 
-                    {box_status:'CLOSE',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    {box_status:'CLOSE',last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
                     box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name}, 
                     (err, res)  => {
                         if (err) throw err;
@@ -108,7 +109,7 @@ exports.handler = function(event, context, callback) {
                 }
                 if(status == 0) {
                     connection.query(inseartQuery, 
-                    {box_status:'OPEN',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    {box_status:'OPEN',last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
                     box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name}, 
                     (err, res)  => {
                         if (err) throw err;
@@ -123,7 +124,7 @@ exports.handler = function(event, context, callback) {
                 
                 if(status == 4 || status == 2) {
                     connection.query(inseartQuery, 
-                    {box_status:'ACTIVE',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    {box_status:'ACTIVE',last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
                     box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name}, 
                     (err, res)  => {
                         if (err) throw err;
@@ -132,7 +133,7 @@ exports.handler = function(event, context, callback) {
                 }
                 if(status == 0) {
                     connection.query(inseartQuery, 
-                    {box_status:'INACTIVE',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    {box_status:'INACTIVE',last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
                     box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name}, 
                     (err, res)  => {
                         if (err) throw err;
@@ -150,7 +151,7 @@ exports.handler = function(event, context, callback) {
                 console.log(formatted + ' temp:' + temp);
                 console.log(formatted + ' timestamp:' + date);
                 connection.query(inseartQuery, 
-                {box_status:'NULL',last_status_confirmed_at:date,hour_minutes:'NULL',status_changed_at:date,box_name:'NULL',box_beacon_id:"1",box_style:'NULL',
+                {box_status:'NULL',last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:'NULL',box_beacon_id:"1",box_style:'NULL',
                 sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:'NULL',temp:temp,humidity:humid}, 
                 (err, res)  => {
                 if (err) throw err;
