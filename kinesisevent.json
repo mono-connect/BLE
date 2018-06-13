@@ -5,7 +5,7 @@
       "eventVersion": "1.0",
       "kinesis": {
         "partitionKey": "partitionKey-3",
-        "data": "JEdQUlAsMzMzMzMzMzMzMzMzLEIwRjFFQzU1OERFMiwtNjUsMDIwMTA2MTJGRjBEMDA4MkJDMjMwMTAwRkZGRkZGRkYwMDAwMDMwMDAwMDAsMTUyODM2NDcwMQ==",
+        "data": "R1BSUCwxMTExMTExMTExMTEsRUQ1MjFBMDkyRUI3LC0xMDAsMDIwMTA2MTJGRjU5MDA4MEJDMjAwMTAxQTEwQTNGMDBGRkZGRkZGRkZGRkYsMTUyODkyOTg2MA==",
         "kinesisSchemaVersion": "1.0",
         "sequenceNumber": "49545115243490985018280067714973144582180062593244200961"
       },
