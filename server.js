@@ -84,14 +84,21 @@ exports.handler = function(event, context, callback) {
             var battery = parseInt(payload.slice(22,26), 16)/100;
             var date = moment(list[5],'X').format("YYYY-MM-DD HH:mm:ss");
             var hour_minutes = moment(list[5],'X').format("HH:mm");
-            var last_status = rows[0].last_status;
-            var sensor_type = rows[0].sensor_type;
             var status = parseInt(payload.slice(20,22));
             var temp = parseInt(payload.slice(16,20), 16)/100;
             var humid = parseInt(payload.slice(12,16), 16)/100;
+            var last_status = rows[0].last_status;
+            var sensor_type = rows[0].sensor_type;
+            var box_name = rows[0].box_name;
+            var box_beacon_id = rows[0].box_beacon_id;
+            var box_style = rows[0].box_style;
+            var sensor_tenant_id = rows[0].sensor_tenant_id;
+            var tenant_name = rows[0].tenant_name;
+            var box_status = rows[0].box_status;
 
             //SQL共通処理
             var updateQuery = 'UPDATE sample_table SET ?? = ? WHERE sensor_macaddrs = ?';
+            var inseartQuery = 'INSERT INTO log_table set ?';
             var obj1 = { 'last_status_confirmed_at':date, 'hour_minutes':hour_minutes, 'sensor_battery': battery };
             var obj2 = { 'last_status_confirmed_at':date, 'hour_minutes':hour_minutes, 'sensor_battery': battery, 'box_status': 'ACTIVE', 'last_status': status, 'status_changed_at': date };
             var obj3 = { 'last_status_confirmed_at':date, 'hour_minutes':hour_minutes, 'sensor_battery': battery, 'box_status': 'INACTIVE', 'last_status': status, 'status_changed_at': date };
@@ -109,6 +116,14 @@ exports.handler = function(event, context, callback) {
                             }
                         );
                     }, obj1);
+                    //ログ記録
+                    connection.query(inseartQuery,
+                    {box_status:box_status,last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                    box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name},
+                    (err, res)  => {
+                        if (err) throw err;
+                        console.log(formatted + ' log insert OK');
+                    });
                 }
                 else if(status == 4 || status == 2) {
                     Object.keys(obj2).forEach(function(key) {
@@ -120,6 +135,15 @@ exports.handler = function(event, context, callback) {
                             }
                         );
                     }, obj2);
+                    //ログ記録
+                    connection.query(inseartQuery,
+                        {box_status:'ACTIVE',last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                        box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name},
+                        (err, res)  => {
+                            if (err) throw err;
+                            console.log(formatted + ' log insert OK');
+                        }
+                    );
                 }
                 else if(status == 0) {
                     Object.keys(obj3).forEach(function(key) {
@@ -131,6 +155,15 @@ exports.handler = function(event, context, callback) {
                             }
                         );
                     }, obj3);
+                    //ログ記録
+                    connection.query(inseartQuery,
+                        {box_status:'INACTIVE',last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:box_name,box_beacon_id:box_beacon_id,
+                        box_style:box_style,sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:tenant_name},
+                        (err, res)  => {
+                            if (err) throw err;
+                            console.log(formatted + ' log insert OK');
+                        }
+                    );
                 }
             }
 
@@ -145,6 +178,16 @@ exports.handler = function(event, context, callback) {
                         }
                     );
                 }, obj4);
+
+                //ログ記録
+                connection.query(inseartQuery,
+                    {box_status:'NULL',last_status_confirmed_at:date,hour_minutes:hour_minutes,status_changed_at:date,box_name:'NULL',box_beacon_id:"1",box_style:'NULL',
+                    sensor_macaddrs:sensor_macaddrs,sensor_type:sensor_type,sensor_battery:battery,sensor_tenant_id:sensor_tenant_id,tenant_name:'NULL',temp:temp,humidity:humid},
+                    (err, res)  => {
+                    if (err) throw err;
+                        console.log(formatted + ' log insert OK');
+                    }
+                );
             }
         });
     });
